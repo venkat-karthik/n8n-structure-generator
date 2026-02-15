@@ -3,21 +3,26 @@
 // =========================================================
 
 // --- API Configuration ---
-// Backend API URL - change this when deploying
-const API_URL = 'http://localhost:3000/api';
+// Automatically detect backend URL based on environment
+const BACKEND_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3000'
+  : 'https://your-backend-url.onrender.com'; // Replace with your actual backend URL
+
+const API_URL = `${BACKEND_URL}/api`;
 
 // Check if backend is available
 let backendAvailable = false;
 
 async function checkBackend() {
   try {
-    const response = await fetch('http://localhost:3000/health');
+    const response = await fetch(`${BACKEND_URL}/health`);
     backendAvailable = response.ok;
     if (backendAvailable) {
       console.log('✅ Backend connected');
     }
   } catch (error) {
     console.warn('⚠️ Backend not available. Make sure to start the backend server.');
+    showToast('Backend server not available. Please check deployment.', 'error');
     backendAvailable = false;
   }
 }
