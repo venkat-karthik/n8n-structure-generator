@@ -10,18 +10,25 @@ Your frontend is deployed on Vercel, but the backend is not running. The app nee
 1. Go to [Render.com](https://render.com) and sign up
 2. Click "New +" → "Web Service"
 3. Connect your GitHub repo: `venkat-karthik/n8n-structure-generator`
-4. Configure:
-   - **Name**: `n8n-backend`
-   - **Root Directory**: `backend`
+4. Configure EXACTLY as follows:
+   - **Name**: `n8n-backend` (or any name you prefer)
+   - **Region**: Oregon (US West) or closest to you
+   - **Branch**: `main`
+   - **Root Directory**: `backend` ⚠️ IMPORTANT!
    - **Environment**: `Node`
    - **Build Command**: `npm install`
    - **Start Command**: `node server.js`
-5. Add Environment Variables:
-   - `GEMINI_API_KEY` = your Gemini API key
-   - `PERPLEXITY_API_KEY` = your Perplexity API key
+5. Add Environment Variables (click "Advanced" → "Add Environment Variable"):
+   - Key: `GEMINI_API_KEY`, Value: your Gemini API key
+   - Key: `PERPLEXITY_API_KEY`, Value: your Perplexity API key
 6. Click "Create Web Service"
 7. Wait for deployment (2-3 minutes)
-8. Copy your backend URL (e.g., `https://n8n-backend-xyz.onrender.com`)
+8. Once deployed, copy your backend URL from the top of the page (e.g., `https://n8n-backend-xyz.onrender.com`)
+
+**Important Notes:**
+- Make sure "Root Directory" is set to `backend` - this is critical!
+- The free tier sleeps after 15 minutes of inactivity
+- First request after sleep takes ~30 seconds to wake up
 
 ### Step 2: Update Frontend with Backend URL
 

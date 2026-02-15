@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: n8n-backend
+    env: node
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PERPLEXITY_API_KEY
+        sync: false
