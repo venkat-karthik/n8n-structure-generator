@@ -6,7 +6,7 @@
 // Automatically detect backend URL based on environment
 const BACKEND_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:3000'
-  : 'https://n8n-structure-generator.onrender.com'; // Replace with your actual backend URL
+  : 'https://n8n-backend-v33h.onrender.com';
 
 const API_URL = `${BACKEND_URL}/api`;
 
