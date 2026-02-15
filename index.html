@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Generate import-ready n8n workflow JSON files using AI with strong validation, repair, and UX guardrails.">
+  <title>N8N Agent Blueprint Studio</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+      <div class="header-left">
+        <div class="header-logo">n8n</div>
+        <div>
+          <div class="header-title">N8N Agent Blueprint Studio</div>
+          <div class="header-subtitle">Generate import-ready n8n workflow JSON with AI</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="btn-icon" id="settings-toggle" title="API Settings">⚙️</button>
+        <button class="btn-icon" id="theme-toggle" title="Toggle Theme">🌙</button>
+        <div>
+          <label for="version-select">n8n Version</label>
+          <select id="version-select" class="version-select">
+            <option value="1.x" selected>n8n 1.x</option>
+            <option value="0.x">n8n 0.x (legacy)</option>
+          </select>
+        </div>
+        <div style="margin-left: 1rem;">
+          <label for="provider-select">AI Provider</label>
+          <select id="provider-select" class="version-select">
+            <option value="gemini">Google Gemini</option>
+            <option value="perplexity" selected>Perplexity AI</option>
+          </select>
+        </div>
+        <button class="btn-icon" id="history-toggle" title="View History">📜</button>
+      </div>
+    </header>
+
+    <!-- ===== INPUT PANEL ===== -->
+    <section class="panel" id="input-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Workflow Description</h2>
+        <span class="panel-badge"
+          style="background: var(--accent-glow); color: var(--accent-primary); border: 1px solid rgba(59,130,246,0.2);">Step
+          1</span>
+      </div>
+
+      <!-- Template Pills -->
+      <div class="template-pills" id="template-pills">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Prompt Textarea -->
+      <div class="prompt-area">
+        <textarea id="prompt-textarea" class="prompt-textarea"
+          placeholder="Describe the n8n workflow you want to build. Be specific about triggers, actions, conditions, and data flow. Select a template above to start with a pre-configured seed prompt."
+          spellcheck="true"></textarea>
+        <span class="prompt-char-count" id="char-count">0 chars</span>
+      </div>
+
+      <!-- Generate Button -->
+      <div class="generate-actions">
+        <button id="generate-btn" class="btn btn-primary" disabled>
+          Generate Workflow
+        </button>
+        <span class="keyboard-hint">⌘ + Enter</span>
+      </div>
+    </section>
+
+    <!-- ===== OUTPUT PANEL ===== -->
+    <section class="panel" id="output-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Generated Output</h2>
+        <span class="panel-badge"
+          style="background: var(--accent-glow); color: var(--accent-primary); border: 1px solid rgba(59,130,246,0.2);">Step
+          2</span>
+      </div>
+
+      <!-- Tabs -->
+      <div class="output-tabs">
+        <button class="output-tab active" data-tab="json">Workflow JSON</button>
+        <button class="output-tab" data-tab="visual">Visualizer</button>
+        <button class="output-tab" data-tab="explain">Explain Workflow</button>
+        <button class="output-tab" data-tab="stats">Statistics</button>
+        <button class="output-tab" data-tab="optimize">Optimize</button>
+      </div>
+
+      <!-- Validation Bar -->
+      <div class="validation-bar idle" id="validation-bar">
+        <span class="validation-text" id="validation-text">No workflow generated yet.</span>
+      </div>
+
+      <!-- Error List -->
+      <div class="error-list hidden" id="error-list"></div>
+
+      <!-- JSON Tab -->
+      <div class="tab-content active" id="tab-json">
+        <!-- Placeholder -->
+        <div class="output-placeholder" id="output-placeholder">
+          <div class="output-placeholder-icon">{ }</div>
+          <div class="output-placeholder-text">
+            Select a template, describe your workflow, and click Generate to create an import-ready n8n workflow JSON.
+          </div>
+        </div>
+
+        <!-- Code Viewer (hidden initially) -->
+        <div class="code-viewer" id="code-viewer" style="display: none;">
+          <div class="code-viewer-header">
+            <span class="code-viewer-filename">workflow.json</span>
+            <div class="code-viewer-actions">
+              <button class="btn-icon" id="copy-btn" title="Copy to clipboard">
+                <!-- Copy icon (SVG inline) -->
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <pre class="code-content" id="code-content"></pre>
+        </div>
+
+        <!-- Download Section (hidden initially) -->
+        <div class="download-section" id="download-section" style="display: none;">
+          <div class="download-info">
+            File will be saved as <strong>workflow.json</strong> -- directly importable into n8n.
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button class="btn btn-success" id="download-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Download JSON
+            </button>
+            <button class="btn btn-outline" id="favorite-btn" onclick="toggleFavorite()">
+              ☆ Add to Favorites
+            </button>
+            <button class="btn btn-outline" onclick="generateShareableLink()">
+              🔗 Share Link
+            </button>
+            <button class="btn btn-outline" onclick="saveAsTemplate()">
+              📋 Save as Template
+            </button>
+            <div class="export-dropdown">
+              <button class="btn btn-outline" id="export-menu-btn">
+                Export As ▾
+              </button>
+              <div class="export-menu" id="export-menu">
+                <button onclick="exportWorkflow('json')">JSON</button>
+                <button onclick="exportWorkflow('yaml')">YAML</button>
+                <button onclick="exportWorkflow('markdown')">Markdown</button>
+              </div>
+            </div>
+            <button class="btn btn-outline" id="toggle-import-instructions">
+              How to Import
+            </button>
+          </div>
+        </div>
+
+        <!-- Import Instructions -->
+        <div class="import-instructions hidden" id="import-instructions">
+          <h4>How to import into n8n</h4>
+          <ol>
+            <li>Open your n8n instance in a browser.</li>
+            <li>Navigate to the <strong>Workflows</strong> page.</li>
+            <li>Click the three-dot menu in the top-right corner.</li>
+            <li>Select <strong>"Import from File"</strong>.</li>
+            <li>Choose the downloaded <strong>workflow.json</strong> file.</li>
+            <li>Review the imported workflow in the canvas editor.</li>
+            <li>Update any credential nodes with your own API keys or tokens.</li>
+            <li>Activate the workflow when ready.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Visualizer Tab -->
+      <div class="tab-content" id="tab-visual">
+        <div id="mermaid-container" class="mermaid-container">
+          <div class="output-placeholder">
+            <div class="output-placeholder-icon">📊</div>
+            <div>Generate a workflow to visualize it here.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Explain Tab -->
+      <div class="tab-content" id="tab-explain">
+        <div id="explanation-content">
+          <div class="explanation-placeholder">
+            Generate a workflow first, then switch to this tab to get a plain-language explanation of what it does.
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Tab -->
+      <div class="tab-content" id="tab-stats">
+        <div id="stats-panel">
+          <div class="explanation-placeholder">
+            Generate a workflow to see detailed statistics and insights.
+          </div>
+        </div>
+      </div>
+
+      <!-- Optimization Tab -->
+      <div class="tab-content" id="tab-optimize">
+        <div id="optimization-panel">
+          <div class="explanation-placeholder">
+            Generate a workflow to receive AI-powered optimization suggestions.
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- History Sidebar -->
+  <div class="sidebar" id="history-sidebar">
+    <div class="sidebar-header">
+      <h3>Workflow History</h3>
+      <button class="btn-icon" id="close-history">✕</button>
+    </div>
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" data-sidebar-tab="history">History</button>
+      <button class="sidebar-tab" data-sidebar-tab="templates">Templates</button>
+    </div>
+    <div class="sidebar-content" id="history-list">
+      <!-- Populated by JS -->
+    </div>
+    <div class="sidebar-content hidden" id="custom-templates-list">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Keyboard Shortcuts Help -->
+  <div class="shortcuts-hint">
+    <button class="btn-icon" id="shortcuts-btn" title="Keyboard Shortcuts">⌨️</button>
+  </div>
+
+  <div class="shortcuts-modal hidden" id="shortcuts-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Keyboard Shortcuts</h3>
+        <button class="btn-icon" onclick="$('#shortcuts-modal').classList.add('hidden')">✕</button>
+      </div>
+      <div class="shortcuts-list">
+        <div class="shortcut-item">
+          <kbd>⌘</kbd> + <kbd>Enter</kbd>
+          <span>Generate Workflow</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>⌘</kbd> + <kbd>S</kbd>
+          <span>Download JSON</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>⌘</kbd> + <kbd>K</kbd>
+          <span>Copy to Clipboard</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+    window.mermaid = mermaid;
+  </script>
+  <script src="app.js"></script>
+</body>
+
+</html>
